@@ -21,7 +21,7 @@ import hyperscan_lib
 class Hyperscan(object):
   """The Hyperscan class."""
 
-  def __init__(self, patterns=None, flags=None, mode=None):
+  def __init__(self, patterns=None, flags=None, mode=None, ids=None):
     """Init.
 
     Args:
@@ -46,14 +46,16 @@ class Hyperscan(object):
 
     if mode is None:
       mode = self._hs.HS_MODE_BLOCK
-
+    if ids is None:
+      ids = [0] * len(patterns)
     self.patterns = patterns
     self.flags = flags
     self.mode = mode
+    self.ids = ids
 
-    self._CompilePatterns(self.patterns, self.flags, self.mode)
+    self._CompilePatterns(self.patterns, self.flags, self.mode, self.ids)
 
-  def _CompilePatterns(self, patterns, flags, mode):
+  def _CompilePatterns(self, patterns, flags, mode, ids):
     """Compiles the patterns/flags given into a database."""
     try:
       res = self._hs.hs_free_database(self._database_p[0])
@@ -68,12 +70,15 @@ class Hyperscan(object):
     cffi_flags = self._ffi.new("int []", flags)
     cffi_flags_p = self._ffi.cast("unsigned int *", cffi_flags)
 
+    cffi_ids = self._ffi.new("int []", ids)
+    cffi_ids_p = self._ffi.cast("unsigned int *", cffi_ids)
+
     database_p = self._ffi.new("hs_database_t **")
 
     compile_error_p = self._ffi.new("hs_compile_error_t **")
 
     res = self._hs.hs_compile_multi(cffi_array, cffi_flags_p,
-                                    self._ffi.cast("unsigned int *", 0),
+                                    cffi_ids_p,
                                     len(patterns), mode,
                                     self._ffi.cast("hs_platform_info_t *", 0),
                                     database_p, compile_error_p)
@@ -101,7 +106,7 @@ class Hyperscan(object):
   def _EnsureMode(self, mode):
     if self.mode != mode:
       self.mode = mode
-      self._CompilePatterns(self.patterns, self.flags, self.mode)
+      self._CompilePatterns(self.patterns, self.flags, self.mode, self.ids)
 
   def ScanBlock(self, data, callback=None):
     """Scans a single block of data for the patterns."""
