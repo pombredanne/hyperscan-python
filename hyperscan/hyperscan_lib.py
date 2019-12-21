@@ -21,8 +21,12 @@ cdefs = """
 
 typedef int hs_error_t;
 
-struct hs_platform_info;
-typedef struct hs_platform_info hs_platform_info_t;
+typedef struct hs_platform_info {
+    unsigned int tune;
+    unsigned long long cpu_features;
+    unsigned long long reserved1;
+    unsigned long long reserved2;
+} hs_platform_info_t;
 
 struct hs_database;
 typedef struct hs_database hs_database_t;
@@ -48,6 +52,8 @@ typedef struct hs_stream hs_stream_t;
 #define HS_DB_MODE_ERROR        -7
 #define HS_BAD_ALIGN            -8
 #define HS_BAD_ALLOC            -9
+#define HS_SCRATCH_IN_USE       -10
+#define HS_ARCH_ERROR           -11
 
 #define HS_FLAG_CASELESS        1
 #define HS_FLAG_DOTALL          2
@@ -63,6 +69,10 @@ typedef struct hs_stream hs_stream_t;
 #define HS_MODE_NOSTREAM        1
 #define HS_MODE_STREAM          2
 #define HS_MODE_VECTORED        4
+
+#define HS_MODE_SOM_HORIZON_LARGE   16777216ULL
+#define HS_MODE_SOM_HORIZON_MEDIUM  33554432ULL
+#define HS_MODE_SOM_HORIZON_SMALL   67108864ULL
 
 
 hs_error_t hs_alloc_scratch(const hs_database_t *db, hs_scratch_t **scratch);
